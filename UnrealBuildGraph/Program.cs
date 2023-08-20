@@ -35,15 +35,16 @@ while (curInput != "quit")
         var pluginsByName = uPlugins.ToDictionary(x => x.Name, x => x);
         if (curInput.StartsWith("dt"))
         {
-            var commandArgs = curInput.TrimStart('d').TrimStart('t');
+            var commandArgs = curInput.TrimStart('d').TrimStart('t').Trim();
             serviceProvider
                 .GetRequiredService<GetPluginDependencyTreeQuery>()
                 .Get(pluginsByName, commandArgs);
         }
         else if (curInput.StartsWith("up"))
         {
-            serviceProvider.GetRequiredService<GetUnnecessaryPluginsQuery>()
-                .Get(pluginsByName);
+            var commandArgs = curInput.TrimStart('u').TrimStart('p').Trim();
+            await serviceProvider.GetRequiredService<GetUnnecessaryPluginsQuery>()
+                .Get(pluginsByName, commandArgs);
         }
     }
 
