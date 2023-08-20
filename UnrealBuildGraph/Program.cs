@@ -12,15 +12,11 @@ var sourceDir = Environment.GetEnvironmentVariable(sourceEnvVarKey);
 if (sourceDir is null)
     throw new InvalidOperationException(sourceEnvVarKey);
 
-// TODO: Handle case sensitivity e.g. *.Build.cs vs *.build.cs
 var pluginFileNames = Directory.GetFiles(sourceDir, "*.uplugin", SearchOption.AllDirectories);
-var moduleFileNames = Directory.GetFiles(sourceDir, "*.Build.cs", SearchOption.AllDirectories);
+// TODO: Handle case sensitivity e.g. *.Build.cs vs *.build.cs
+// var moduleFileNames = Directory.GetFiles(sourceDir, "*.Build.cs", SearchOption.AllDirectories);
 Console.WriteLine($"Found {pluginFileNames.Length} plugins");
-Console.WriteLine($"Found {moduleFileNames.Length} modules");
-
-// var pluginParseTasks = pluginFileNames.Select(x =>
-//     JsonSerializer.DeserializeAsync<UPlugin>(File.OpenRead(x)).AsTask()
-// );
+// Console.WriteLine($"Found {moduleFileNames.Length} modules");
 
 var pluginParseTasks = pluginFileNames.Select(x => UPlugin.CreateAsync(Path.GetFileNameWithoutExtension(x), x));
 
@@ -28,6 +24,7 @@ var uPlugins = await Task.WhenAll(pluginParseTasks);
 
 var serviceProvider = new ServiceCollection()
     .AddSingleton<GetPluginDependencyTreeQuery>()
+    .AddSingleton<GetUnnecessaryPluginsQuery>()
     .BuildServiceProvider();
 
 var curInput = "";
@@ -35,11 +32,21 @@ while (curInput != "quit")
 {
     if (!string.IsNullOrWhiteSpace(curInput))
     {
-        serviceProvider
-            .GetRequiredService<GetPluginDependencyTreeQuery>()
-            .Get(uPlugins.ToDictionary(x => x.Name, x => x), curInput);
+        var pluginsByName = uPlugins.ToDictionary(x => x.Name, x => x);
+        if (curInput.StartsWith("dt"))
+        {
+            var commandArgs = curInput.TrimStart('d').TrimStart('t');
+            serviceProvider
+                .GetRequiredService<GetPluginDependencyTreeQuery>()
+                .Get(pluginsByName, commandArgs);
+        }
+        else if (curInput.StartsWith("up"))
+        {
+            serviceProvider.GetRequiredService<GetUnnecessaryPluginsQuery>()
+                .Get(pluginsByName);
+        }
     }
 
+    Console.WriteLine("\n\nEnter command:");
     curInput = Console.ReadLine();
 }
-
