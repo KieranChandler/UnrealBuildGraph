@@ -1,6 +1,7 @@
 using System.Text.Json;
 
-public record UPlugin(string Name, string FriendlyName, string[] Modules, string[] Dependencies)
+public record UPlugin(
+    string Name, string FriendlyName, bool EnabledByDefault, string Path, string[] Modules, string[] Dependencies)
 {
     public static async Task<UPlugin> CreateAsync(string name, string fileName)
     {
@@ -33,11 +34,17 @@ public record UPlugin(string Name, string FriendlyName, string[] Modules, string
         var dependencies = jsonDocument.RootElement
             .TryGetProperty("Plugins", out var pluginsProp)
             ? pluginsProp.EnumerateArray()
+                .Where(x => x.GetProperty("Enabled").GetBoolean())
                 .Select(x => x.GetProperty("Name").GetString())
                 .ToArray()
             : Array.Empty<string>();
-        
+
+        var enabledByDefault = jsonDocument.RootElement.GetProperty("EnabledByDefault").GetBoolean();
+
+        var directoryName = System.IO.Path.GetDirectoryName(
+            System.IO.Path.GetFullPath(fileName));
+
         Console.WriteLine($"Plugin {name} successfully parsed");
-        return new UPlugin(name, friendlyName, moduleNames, dependencies);
+        return new UPlugin(name, friendlyName, enabledByDefault, directoryName, moduleNames, dependencies);
     }
 }
