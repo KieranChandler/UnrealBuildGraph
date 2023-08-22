@@ -39,7 +39,9 @@ public record UPlugin(
                 .ToArray()
             : Array.Empty<string>();
 
-        var enabledByDefault = jsonDocument.RootElement.GetProperty("EnabledByDefault").GetBoolean();
+        var enabledByDefault = jsonDocument.RootElement
+                .TryGetProperty("EnabledByDefault", out var enabledByDefaultProp)
+            && enabledByDefaultProp.GetBoolean();
 
         var directoryName = System.IO.Path.GetDirectoryName(
             System.IO.Path.GetFullPath(fileName));
