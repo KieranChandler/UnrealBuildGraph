@@ -4,8 +4,6 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using UnrealBuildGraph;
 
-Console.WriteLine("Hello, World!");
-
 const string sourceEnvVarKey = "UE4_SOURCE_DIRECTORY";
 
 var sourceDir = Environment.GetEnvironmentVariable(sourceEnvVarKey);

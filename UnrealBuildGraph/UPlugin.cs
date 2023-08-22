@@ -46,7 +46,6 @@ public record UPlugin(
         var directoryName = System.IO.Path.GetDirectoryName(
             System.IO.Path.GetFullPath(fileName));
 
-        Console.WriteLine($"Plugin {name} successfully parsed");
         return new UPlugin(name, friendlyName, enabledByDefault, directoryName, moduleNames, dependencies);
     }
 }
